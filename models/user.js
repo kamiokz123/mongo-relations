@@ -23,63 +23,49 @@ const orderSchema = mongoose.Schema([
         name: String,
         price: Number
     }
-])
+]);
+
+// mongoose middlewares
+// pre execute before 
+// post execute after
+
+customerSchema.pre("findOneAndDelete", async () => {
+    console.log("pre middleware");
+});
+
+customerSchema.post("findOneAndDelete", async (customer) => {
+    if (customer.orders.length) {
+        const del = await Order.deleteMany({ _id: { $in: customer.orders } });
+        console.log("post middleware : ", del);
+
+    }
+});
 
 const Customer = mongoose.model("Customer", customerSchema);
 const Order = mongoose.model("Order", orderSchema);
 
-const addOrder = async () => {
-    const order1 = new Order({
-        name: "samosa",
-        price: 20
+
+// functions
+const addCustomer = async () => {
+    const cus1 = new Customer({
+        username: "shahid"
     });
 
-    const order2 = new Order({
-        name: "chips",
-        price: 15
+    const odr1 = new Order({
+        name: "burger pizza",
+        price: 213
     });
 
-    const res = await Order.insertMany([order1,order2]);
-    console.log(res);
+    cus1.orders.push(odr1);
 
+    await odr1.save();
+    await cus1.save();
 };
-// addOrder();
+// addCustomer();
 
-
-const addCustomer = async ()=>{
-    // const customer1 = new Customer({
-    //     username : "shokla",
-    // });
-
-    // const order1 = await Order.findOne({name:"samosa"});
-    // const order2 = await Order.findOne({name:"chips"});
-
-    // customer1.orders.push(order1,order2);
-
-    // const res = await customer1.save();
-    // console.log(res);
-    const res = await Customer.find();
-    const or = await Order.findOne({_id : res[0].orders[0]})
-    console.log(or);
-    
+const delCustomer = async () => {
+    const del = await Customer.findByIdAndDelete('675030952c072f99093040dc');
+    console.log(del);
 };
-addCustomer();
+delCustomer();
 
-// const addUser = async ()=>{
-//    const  user1 = new User({
-//         username : "kamran",
-//         address : [
-//             {
-//                 location : "street 202 near bridge",
-//                 city : "london"
-//             },
-//             {
-//                 location : "house 300 near border",
-//                 city : "california"
-//             }
-//         ]
-//     });
-//     const result = await user1.save();
-//     console.log(result);
-// };
-// addUser();
